@@ -1,16 +1,17 @@
 import os
-from os import walk
-from nltk.tokenize import RegexpTokenizer
-from gensim.models import Word2Vec
 
-def gen_formatted_review(data_dir, tokenizer = RegexpTokenizer(r'\w+') ):
+from gensim.models import Word2Vec
+from nltk.tokenize import RegexpTokenizer
+
+
+def gen_formatted_review(data_dir, tokenizer=RegexpTokenizer(r'\w+')):
     data = []
-    for  filename in os.listdir(data_dir):
+    for filename in os.listdir(data_dir):
         file = os.path.join(data_dir, filename)
         with open(file) as f:
             content = f.readline().lower()
             content_formatted = tokenizer.tokenize(content)
-            data.append(content_formatted)            
+            data.append(content_formatted)
     return data
 
 
@@ -35,11 +36,10 @@ if __name__ == "__main__":
         embedding_model = Word2Vec.load(fname)
     else:
         embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
-        embedding_model.save(fname)  
+        embedding_model.save(fname)
     word1 = "great"
     word2 = "horrible"
     print("similar words of {}:".format(word1))
     print(embedding_model.most_similar('great'))
     print("similar words of {}:".format(word2))
     print(embedding_model.most_similar('horrible'))
-    pass
