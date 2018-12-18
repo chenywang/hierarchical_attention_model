@@ -15,3 +15,6 @@ class Config(object):
 
     imbd_path = data_path + 'aclImdb'
 
+    log_path = project_path + '/logs/'
+    visualization = project_path + '/visualization/'
+

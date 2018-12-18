@@ -4,6 +4,8 @@ import re
 import numpy as np
 import tensorflow as tf
 
+from config import config
+
 
 class BucketedDataIterator():
     ## bucketed data iterator uses R2RT's implementation(https://r2rt.com/recurrent-neural-networks-in-tensorflow-iii-variable-length-sequences.html)
@@ -93,7 +95,7 @@ def visualize_sentence_format(sent):
 
 def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test, y_test,
               y_predict, visual_sample_index):
-    visual_dir = "../visualization"
+    visual_dir = config.visualization
     # visualization
     sents_visual_file = os.path.join(visual_dir, "sents_in_review_visualization_{}.html".format(visual_sample_index))
     x_test_sample = x_test[visual_sample_index:visual_sample_index + 1]

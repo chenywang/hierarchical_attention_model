@@ -7,6 +7,7 @@ import pandas as pd
 import tensorflow as tf
 
 from code.components import sequence, attention, BucketedDataIterator, visualize
+from config import config
 
 
 def build_graph(
@@ -85,8 +86,8 @@ if __name__ == "__main__":
     resume = args.resume
     epochs = args.epochs
 
-    working_dir = "../data/aclImdb"
-    log_dir = "../logs"
+    working_dir = config.imbd_path
+    log_dir = config.log_path
     train_filename = os.path.join(working_dir, "train_df_file")
     test_filename = os.path.join(working_dir, "test_df_file")
     emb_filename = os.path.join(working_dir, "emb_matrix")
@@ -134,7 +135,7 @@ if __name__ == "__main__":
         #         insert this snippet to restore a model:
         resume_from_epoch = -1
         if resume:
-            latest_cpt_file = tf.train.latest_checkpoint('../logs')
+            latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
             print("the code pick up from lateset checkpoint file: {}".format(latest_cpt_file))
             resume_from_epoch = int(str(latest_cpt_file).split('-')[1])
             print("it resumes from previous epoch of {}".format(resume_from_epoch))
