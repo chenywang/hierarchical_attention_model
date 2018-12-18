@@ -97,7 +97,7 @@ def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alp
               y_predict, visual_sample_index):
     visual_dir = config.visualization_path
     # visualization
-    sents_visual_file = os.path.join(visual_dir, "sents_in_review_visualization_{}.html".format(visual_sample_index))
+    sents_visual_file = os.path.join(visual_dir, "visualize_{}.html".format(visual_sample_index))
     x_test_sample = x_test[visual_sample_index:visual_sample_index + 1]
     y_test_sample = y_test[visual_sample_index:visual_sample_index + 1]
     test_dict = {inputs: x_test_sample, revlens: [max_rev_length], keep_probs: [1.0, 1.0]}

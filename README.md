@@ -15,9 +15,9 @@ It will download the raw imdb data and uncompress it to ./data/aclImdb folder wi
 
 2. pretrain word embeddings
 
-I've tried both training word embeddings in a supervised fashion and in an unsupervised(pretaining) fashion. The former took more computational resources and also prone to overfitting. 
 ```python -m code.gen_word_embeddings```
-(By default, the embedding size is 50.)
+
+(By default, the embedding size is 100.)
 
 3. preprocess reviews
 
@@ -25,7 +25,7 @@ Preprocess reviews: each review will be composed of max_rev_len sentences. If th
 We directly read in pre-trained embeddings. Here we take the default dictionary size to be 10000. The words are indexed from 1 to 10000.
 Any words that are not included in the dictionary are makred as "UNK", and the index for "UNK" is 0. The index for "STOP" is 10001.
 
-python -m code.preprocess_reviews --sent_length 70 --max_rev_length 15
+```python -m code.preprocess_reviews --sentence_length 70 --max_rev_length 15```
 
 4. run the model
 

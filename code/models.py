@@ -1,7 +1,7 @@
 import argparse
 import os
 import pickle as pl
-
+import json
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -88,17 +88,18 @@ if __name__ == "__main__":
 
     working_dir = config.imbd_path
     log_dir = config.log_path
-    train_filename = os.path.join(working_dir, "train_df_file")
-    test_filename = os.path.join(working_dir, "test_df_file")
-    emb_filename = os.path.join(working_dir, "emb_matrix")
+
     print("load dataframe for training...")
-    df_train = pd.read_pickle(train_filename)
+    df_train = pd.read_csv(config.train_path, sep='\t')
+    df_train['review'] = df_train['review'].apply(lambda x: np.array(json.loads(x)))
     max_rev_length, sent_length = df_train['review'][0].shape
+
     print("load dataframe for testing...")
-    df_test = pd.read_pickle(test_filename)
-    print(df_test.shape)
+    df_test = pd.read_csv(config.test_path, sep='\t')
+    df_test['review'] = df_test['review'].apply(lambda x: np.array(json.loads(x)))
+
     print("load embedding matrix...")
-    (emb_matrix, word2index, index2word) = pl.load(open(emb_filename, "rb"))
+    (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
 
     nclasses = 2
     y_ = tf.placeholder(tf.int32, shape=[None, nclasses])
@@ -180,6 +181,6 @@ if __name__ == "__main__":
             avg_accu += 1.0 * accu / total_batch2
 
         print("prediction accuracy on test set is {}".format(avg_accu))
-        visual_sample_index = 99
-        visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test,
-                  y_test, y_predict, visual_sample_index)
+        for i in range(100):
+            visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test,
+                  y_test, y_predict, i)
