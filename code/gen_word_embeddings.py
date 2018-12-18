@@ -3,6 +3,8 @@ import os
 from gensim.models import Word2Vec
 from nltk.tokenize import RegexpTokenizer
 
+from config import config
+
 
 def gen_formatted_review(data_dir, tokenizer=RegexpTokenizer(r'\w+')):
     data = []
@@ -16,7 +18,7 @@ def gen_formatted_review(data_dir, tokenizer=RegexpTokenizer(r'\w+')):
 
 
 if __name__ == "__main__":
-    working_dir = "../data/aclImdb"
+    working_dir = config.imbd_path
     train_dir = os.path.join(working_dir, "train")
     train_pos_dir = os.path.join(train_dir, "pos")
     train_neg_dir = os.path.join(train_dir, "neg")
