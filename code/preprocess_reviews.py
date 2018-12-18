@@ -164,8 +164,11 @@ if __name__ == "__main__":
     emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
 
     # 获得数据
+    size = 100000
     position_data = pd.read_csv(config.positive_review_path, sep='\t')
     negative_data = pd.read_csv(config.negative_review_path, sep='\t')
+    position_data = position_data[:size]
+    negative_data = negative_data[:size]
     data = position_data.append(negative_data)
     x_data = list(data['context'].apply(get_train_data, word2index=word2index))
     y_data = [0] * position_data.shape[0] + [1] * negative_data.shape[0]

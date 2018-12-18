@@ -20,14 +20,7 @@ class Config(object):
     train_path = os.path.join(review_path, "train_vector.csv")
     test_path = os.path.join(review_path, "text_vector.csv")
 
-
     imbd_path = data_path + 'aclImdb'
-
 
     log_path = project_path + '/logs/'
     visualization_path = project_path + '/visualization/'
-
-
-
-
-

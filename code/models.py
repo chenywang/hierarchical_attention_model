@@ -181,6 +181,8 @@ if __name__ == "__main__":
             avg_accu += 1.0 * accu / total_batch2
 
         print("prediction accuracy on test set is {}".format(avg_accu))
+
+        print("正在生成可视化h5界面")
         for i in range(100):
             visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test,
                   y_test, y_predict, i)
