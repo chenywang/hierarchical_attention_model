@@ -9,17 +9,15 @@ The code was experimented on imdb data (with only positive and negative labels)
 
 To prepare the data:
 
-1. bash data.sh
+1. ```bash data.sh``
 
 It will download the raw imdb data and uncompress it to ./data/aclImdb folder with positive samples under 'pos' and negative ones under 'neg' subdirectories. 
 
 2. pretrain word embeddings
 
 I've tried both training word embeddings in a supervised fashion and in an unsupervised(pretaining) fashion. The former took more computational resources and also prone to overfitting. 
-
-    cd ./code
-    python gen_word_embeddings.py
-    (By default, the embedding size is 50.)
+```python -m code.gen_word_embeddings```
+(By default, the embedding size is 50.)
 
 3. preprocess reviews
 
@@ -27,13 +25,13 @@ Preprocess reviews: each review will be composed of max_rev_len sentences. If th
 We directly read in pre-trained embeddings. Here we take the default dictionary size to be 10000. The words are indexed from 1 to 10000.
 Any words that are not included in the dictionary are makred as "UNK", and the index for "UNK" is 0. The index for "STOP" is 10001.
 
-    python preprocess_reviews.py --sent_length 70 --max_rev_length 15
+python -m code.preprocess_reviews --sent_length 70 --max_rev_length 15
 
 4. run the model
 
 Train the model and evaluate it on the test set.
     
-    python models.py
+    python -m code.models
 
     --batch_size batch size (default 512)
 

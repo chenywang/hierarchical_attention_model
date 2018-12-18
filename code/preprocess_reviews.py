@@ -100,8 +100,7 @@ if __name__ == "__main__":
     if os.path.isfile(fname):
         embedding_model = Word2Vec.load(fname)
     else:
-        print("please run gen_word_embeddings.py first to generate embeddings!")
-        exit(1)
+        raise ValueError("please run gen_word_embeddings.py first to generate embeddings!")
     print("generate word to index dictionary and inverse dictionary...")
     emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
     print("format each review into sentences, and also represent each word by index...")

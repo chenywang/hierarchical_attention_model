@@ -95,7 +95,7 @@ def visualize_sentence_format(sent):
 
 def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test, y_test,
               y_predict, visual_sample_index):
-    visual_dir = config.visualization
+    visual_dir = config.visualization_path
     # visualization
     sents_visual_file = os.path.join(visual_dir, "sents_in_review_visualization_{}.html".format(visual_sample_index))
     x_test_sample = x_test[visual_sample_index:visual_sample_index + 1]

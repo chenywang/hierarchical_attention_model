@@ -154,7 +154,7 @@ if __name__ == "__main__":
                 avg_cost += c / total_batch
                 train_writer.add_summary(summary_in_batch_train, epoch * total_batch + i)
             saver.save(sess, os.path.join(log_dir, "model.ckpt"), epoch, write_meta_graph=False)
-            print("avg cost in the training phase epoch {}: {}".format(epoch, avg_cost))
+            print("avg lost in the training phase epoch {}: {}".format(epoch, avg_cost))
 
         print("evaluating...")
 
