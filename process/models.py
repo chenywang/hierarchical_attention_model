@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import pickle as pl
 
@@ -7,8 +6,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from code.components import sequence, attention, BucketedDataIterator, visualize
-from code.data_utils import gen_batch_train_data
+from process.components import sequence, attention, visualize
+from process.data_utils import gen_batch_train_data
 from config import config
 
 
@@ -82,35 +81,32 @@ if __name__ == "__main__":
                         help='pick up the latest check point and resume')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='epochs for training')
+    parser.add_argument('-s', '--max_sentence_length', type=int, default=70,
+                        help='fix the sentence length in all reviews, 需要跟预处理保持一致')
+    parser.add_argument('-r', '--max_rev_length', type=int, default=15,
+                        help='fix the maximum review length, 需要跟预处理保持一致')
 
     args = parser.parse_args()
     train_batch_size = args.batch_size
     resume = args.resume
     epochs = args.epochs
+    max_sentence_length = args.max_sentence_length
+    max_rev_length = args.max_rev_length
 
     working_dir = config.imbd_path
     log_dir = config.log_path
 
-    print("load dataframe for training...")
-    df_train = pd.read_csv(config.train_path, sep='\t')
-    df_train['review'] = df_train['review'].apply(lambda x: np.array(json.loads(x)))
-    max_rev_length, sent_length = df_train['review'][0].shape
-
-    print("load dataframe for testing...")
-    df_test = pd.read_csv(config.test_path, sep='\t')
-    df_test['review'] = df_test['review'].apply(lambda x: np.array(json.loads(x)))
-
     print("load embedding matrix...")
     (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
 
-    nclasses = 2
-    y_ = tf.placeholder(tf.int32, shape=[None, nclasses])
-    inputs = tf.placeholder(tf.int32, [None, max_rev_length, sent_length])
+    n_classes = 2
+    y_ = tf.placeholder(tf.int32, shape=[None, n_classes])
+    inputs = tf.placeholder(tf.int32, [None, max_rev_length, max_sentence_length])
     revlens = tf.placeholder(tf.int32, [None])
     keep_probs = tf.placeholder(tf.float32, [2])
 
     dense, alphas_words, alphas_sents = build_graph(inputs, revlens, keep_probs, embeddings=emb_matrix,
-                                                    nclasses=nclasses)
+                                                    nclasses=n_classes)
     cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=dense))
     with tf.variable_scope('optimizers', reuse=None):
         optimizer = tf.train.AdamOptimizer(0.01).minimize(cross_entropy)
@@ -122,12 +118,9 @@ if __name__ == "__main__":
     tf.summary.scalar("accuracy", accuracy)
     summary_op = tf.summary.merge_all()
 
-    total_batch = int(len(df_train) / (train_batch_size))
-
     num_buckets = 3
-    data = BucketedDataIterator(df_train, num_buckets)
 
-    depth = nclasses
+    depth = n_classes
     on_value = 1
     off_value = 0
 
@@ -149,43 +142,29 @@ if __name__ == "__main__":
             avg_cost = 0.0
             print("epoch {}".format(epoch))
             # for i in range(total_batch):
-            for batch_data, batch_label, sentence_length_list in gen_batch_train_data(train_data, word2index,
-                                                                                      sentence_length, max_rev_length):
+            for index, (batch_data, batch_label, sentence_length_list) in \
+                    enumerate(gen_batch_train_data(train_data, word2index, max_sentence_length, max_rev_length)):
                 batch_label_formatted = tf.one_hot(indices=batch_label, depth=depth, on_value=on_value,
                                                    off_value=off_value, axis=-1)
 
                 batch_labels = sess.run(batch_label_formatted)
                 feed = {inputs: batch_data, revlens: sentence_length_list, y_: batch_labels, keep_probs: [0.9, 0.9]}
-                _, c, summary_in_batch_train = sess.run([optimizer, cross_entropy, summary_op], feed_dict=feed)
-                avg_cost += c / total_batch
-                train_writer.add_summary(summary_in_batch_train, epoch * total_batch + i)
+                _, loss, summary_in_batch_train = sess.run([optimizer, cross_entropy, summary_op], feed_dict=feed)
+                print("第{}个epoch的第{}个batch的平均交叉熵为: {}".format(index, epoch, avg_cost))
+
             saver.save(sess, os.path.join(log_dir, "model.ckpt"), epoch, write_meta_graph=False)
-            print("avg lost in the training phase epoch {}: {}".format(epoch, avg_cost))
 
-        print("evaluating...")
+        print("正在评估...")
 
-        x_test = np.asarray(df_test['review'].tolist())
-        y_test = df_test['label'].values.tolist()
-        test_review_lens = df_test['length'].tolist()
-        test_batch_size = 1000
-        total_batch2 = int(len(x_test) / (test_batch_size))
-        avg_accu = 0.0
-
-        for i in range(total_batch2):
-            # for i in range(0):
-            batch_x = x_test[i * test_batch_size:(i + 1) * test_batch_size]
-            batch_y = y_test[i * test_batch_size:(i + 1) * test_batch_size]
-            batch_seqlen = test_review_lens[i * test_batch_size:(i + 1) * test_batch_size]
-
-            batch_label_formatted2 = tf.one_hot(indices=batch_y, depth=depth, on_value=on_value, off_value=off_value,
-                                                axis=-1)
+        for index, (batch_data, batch_label, sentence_length_list) in \
+                enumerate(gen_batch_train_data(test_data, word2index, max_sentence_length, max_rev_length)):
+            batch_label_formatted2 = tf.one_hot(indices=batch_label, depth=depth, on_value=on_value,
+                                                off_value=off_value, axis=-1)
 
             batch_labels2 = sess.run(batch_label_formatted2)
-            feed = {inputs: batch_x, revlens: batch_seqlen, y_: batch_labels2, keep_probs: [1.0, 1.0]}
-            accu = sess.run(accuracy, feed_dict=feed)
-            avg_accu += 1.0 * accu / total_batch2
-
-        print("prediction accuracy on test set is {}".format(avg_accu))
+            feed = {inputs: batch_data, revlens: sentence_length_list, y_: batch_labels2, keep_probs: [1.0, 1.0]}
+            acc = sess.run(accuracy, feed_dict=feed)
+            print("第{}个batch测试集的accuracy为{}".format(index, acc))
 
         print("正在生成可视化h5界面")
         for i in range(100):

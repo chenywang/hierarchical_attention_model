@@ -62,18 +62,18 @@ def sequence(rnn_inputs, hidden_size, seq_lens):
     return rnn_outputs
 
 
-def attention(atten_inputs, atten_size):
+def attention(attention_inputs, attention_size):
     ## attention mechanism uses Ilya Ivanov's implementation(https://github.com/ilivans/tf-rnn-attention)
-    print('attention inputs: ' + str(atten_inputs))
-    max_time = int(atten_inputs.shape[1])
+    print('attention inputs: ' + str(attention_inputs))
+    max_time = int(attention_inputs.shape[1])
     print("max time length: " + str(max_time))
-    combined_hidden_size = int(atten_inputs.shape[2])
+    combined_hidden_size = int(attention_inputs.shape[2])
     print("combined hidden size: " + str(combined_hidden_size))
-    W_omega = tf.Variable(tf.random_normal([combined_hidden_size, atten_size], stddev=0.1, dtype=tf.float32))
-    b_omega = tf.Variable(tf.random_normal([atten_size], stddev=0.1, dtype=tf.float32))
-    u_omega = tf.Variable(tf.random_normal([atten_size], stddev=0.1, dtype=tf.float32))
+    W_omega = tf.Variable(tf.random_normal([combined_hidden_size, attention_size], stddev=0.1, dtype=tf.float32))
+    b_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1, dtype=tf.float32))
+    u_omega = tf.Variable(tf.random_normal([attention_size], stddev=0.1, dtype=tf.float32))
 
-    v = tf.tanh(tf.matmul(tf.reshape(atten_inputs, [-1, combined_hidden_size]), W_omega) + tf.reshape(b_omega, [1, -1]))
+    v = tf.tanh(tf.matmul(tf.reshape(attention_inputs, [-1, combined_hidden_size]), W_omega) + tf.reshape(b_omega, [1, -1]))
     print("v: " + str(v))
     # u_omega is the summarizing question vector
     vu = tf.matmul(v, tf.reshape(u_omega, [-1, 1]))
@@ -82,8 +82,8 @@ def attention(atten_inputs, atten_size):
     print("exps: " + str(exps))
     alphas = exps / tf.reshape(tf.reduce_sum(exps, 1), [-1, 1])
     print("alphas: " + str(alphas))
-    atten_outs = tf.reduce_sum(atten_inputs * tf.reshape(alphas, [-1, max_time, 1]), 1)
-    print("atten outs: " + str(atten_outs))
+    atten_outs = tf.reduce_sum(attention_inputs * tf.reshape(alphas, [-1, max_time, 1]), 1)
+    print("attention outs: " + str(atten_outs))
     return atten_outs, alphas
 
 
@@ -97,7 +97,7 @@ def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alp
               y_predict, visual_sample_index):
     visual_dir = config.visualization_path
     # visualization
-    sents_visual_file = os.path.join(visual_dir, "visualize_{}.html".format(visual_sample_index))
+    visual_file = os.path.join(visual_dir, "visualize_{}.html".format(visual_sample_index))
     x_test_sample = x_test[visual_sample_index:visual_sample_index + 1]
     y_test_sample = y_test[visual_sample_index:visual_sample_index + 1]
     test_dict = {inputs: x_test_sample, revlens: [max_rev_length], keep_probs: [1.0, 1.0]}
@@ -111,7 +111,7 @@ def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alp
     sents = [get_sentence(index2word, x_test_sample[0][i]) for i in range(max_rev_length)]
     index_sent = 0
     print("sents size is {}".format(len(sents)))
-    with open(sents_visual_file, "w") as html_file:
+    with open(visual_file, "w") as html_file:
         html_file.write('actual label: %f, predicted label: %f<br>' % (y_test_sample[0], y_test_predict[0]))
         for sent, alpha in zip(sents, alphas_sents_test[0] / alphas_sents_test[0].max()):
             if len(set(sent.split(' '))) == 1:
@@ -129,5 +129,3 @@ def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alp
             index_sent += 1
 
 
-if __name__ == '__main__':
-    pass

@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import pickle as pl
 import random
@@ -45,7 +44,7 @@ def get_train_data(paragraph, word2index):
     return [sentence2index(sentence, word2index) for sentence in sentences]
 
 
-def preprocess_review(data, sent_length, max_rev_len, keep_in_dict=10000):
+def preprocess_review(data, sent_length, max_rev_length, keep_in_dict=10000):
     ## As the result, each review will be composed of max_rev_len sentences. If the original review is longer than that, we truncate it, and if shorter than that, we append empty sentences to it. And each sentence will be composed of sent_length words. If the original sentence is longer than that, we truncate it, and if shorter, we append the word of 'UNK' to it. Also, we keep track of the actual number of sentences each review contains.
     data_formatted = []
     review_lens = []
@@ -53,7 +52,7 @@ def preprocess_review(data, sent_length, max_rev_len, keep_in_dict=10000):
         review_formatted = preprocessing.sequence.pad_sequences(review, maxlen=sent_length, padding="post",
                                                                 truncating="post", value=keep_in_dict + 1)
         review_len = review_formatted.shape[0]
-        review_lens.append(review_len if review_len <= max_rev_len else max_rev_len)
+        review_lens.append(review_len if review_len <= max_rev_length else max_rev_length)
         lack_len = max_rev_length - review_len
         review_formatted_right_len = review_formatted
         if lack_len > 0:
@@ -84,13 +83,13 @@ def split_train_and_test(x_data, y_data, data_review_lens, split_fraction=0.75):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some important parameters.')
-    parser.add_argument('-s', '--sentence_length', type=int, default=70,
+    parser.add_argument('-s', '--max_sentence_length', type=int, default=70,
                         help='fix the sentence length in all reviews')
     parser.add_argument('-r', '--max_rev_length', type=int, default=15,
                         help='fix the maximum review length')
 
     args = parser.parse_args()
-    sentence_length = args.sentence_length
+    max_sentence_length = args.max_sentence_length
     max_rev_length = args.max_rev_length
 
     # 载入并保存embedding层
@@ -117,6 +116,3 @@ if __name__ == "__main__":
 
     train_data.to_csv(config.train_path, sep='\t', header=True, index=False)
     test_data.to_csv(config.test_path, sep='\t', header=True, index=False)
-
-
-
