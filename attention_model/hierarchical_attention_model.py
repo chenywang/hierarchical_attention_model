@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from process.components import attention, sequence
+from algorithm.implement.components import attention, sequence
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -32,6 +32,7 @@ class HierarchicalModel:
         self.alphas_words = None
         self.alphas_sentences = None
         self.dense = None
+        self.soft_max = None
 
         self.init_placeholders()
         self.build_model()
@@ -44,6 +45,7 @@ class HierarchicalModel:
         self.keep_probabilities = tf.placeholder(tf.float32, [2], name='keep_probabilities_place_holder')
 
     def build_model(self):
+        # embedding层
         embedding_output = tf.nn.embedding_lookup(tf.convert_to_tensor(self.embeddings, np.float32), self.inputs)
         embedding_output = tf.reshape(embedding_output, [-1, self.max_sentence_length, self.embedding_dims])
 
@@ -69,7 +71,7 @@ class HierarchicalModel:
             sentence_attention_outputs, self.alphas_sentences = attention(sentence_attention_inputs,
                                                                           self.attention_size)
 
-        # 全链接层
+        # 全连接层
         with tf.variable_scope("out_weights1"):
             weights_out = tf.get_variable(name="output_w", dtype=tf.float32,
                                           shape=[self.hidden_size * 2, self.n_classes])
@@ -79,7 +81,9 @@ class HierarchicalModel:
         # 优化层
         one_hot_y = tf.one_hot(indices=self.y_, depth=self.n_classes, on_value=self.on_value, off_value=self.off_value,
                                axis=-1)
-        self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=self.dense))
+        self.soft_max = tf.nn.softmax(self.dense)
+        self.cross_entropy = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits_v2(labels=one_hot_y, logits=self.dense))
         with tf.variable_scope('optimizers', reuse=None):
             self.optimizer = tf.train.AdamOptimizer(0.01).minimize(self.cross_entropy)
         y_predict = tf.argmax(self.dense, 1)
@@ -103,17 +107,20 @@ class HierarchicalModel:
         accuracy = sess.run([self.accuracy], feed_dict=feed)
         return accuracy
 
-    def predict(self, sess, x_data, y_data, sentence_length_list):
-        feed = {self.inputs: x_data, self.review_length_list: sentence_length_list, self.y_: y_data,
+    def predict(self, sess, x_data, review_length_list):
+        feed = {self.inputs: x_data, self.review_length_list: review_length_list,
                 self.keep_probabilities: [1.0, 1.0]}
-        dense, alphas_words, alphas_sentences = sess.run([self.dense, self.alphas_words, self.alphas_sentences],
-                                                         feed_dict=feed)
-        return dense, alphas_words, alphas_sentences
+        soft_max, alphas_words, alphas_sentences = sess.run([self.soft_max, self.alphas_words, self.alphas_sentences],
+                                                            feed_dict=feed)
+        return soft_max, alphas_words, alphas_sentences
+
+    def predict_single(self, sess, x, review_length):
+        return self.predict(sess, [x], [review_length])
 
     @staticmethod
     def save(sess, saver, path, global_step=None):
         save_path = saver.save(sess, save_path=path, global_step=global_step, write_meta_graph=False)
-        print('Model saved at {}'.format(save_path))
+        print('模型被保存在{}'.format(save_path))
 
     @staticmethod
     def restore(sess, saver, model_path):
