@@ -97,3 +97,4 @@ logdir/
 *.pyc
 data/
 logs/
+visualization
