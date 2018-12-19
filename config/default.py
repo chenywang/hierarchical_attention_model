@@ -17,8 +17,8 @@ class Config(object):
     embedding_pickle_path = review_path + 'review_embedding.pickle'
     positive_review_path = os.path.join(review_path, 'positive_review.csv')
     negative_review_path = os.path.join(review_path, 'negative_review.csv')
-    train_path = os.path.join(review_path, "train_vector.csv")
-    test_path = os.path.join(review_path, "text_vector.csv")
+    train_path = os.path.join(review_path, "train_data.csv")
+    test_path = os.path.join(review_path, "test_data.csv")
 
     imbd_path = data_path + 'aclImdb'
 

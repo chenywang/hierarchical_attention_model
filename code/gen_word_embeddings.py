@@ -1,50 +1,12 @@
 import os
+
 import pandas as pd
 from gensim.models import Word2Vec
 from nltk.tokenize import RegexpTokenizer
 
 from config import config
 
-
-def gen_formatted_review(data_dir, tokenizer=RegexpTokenizer(r'\w+')):
-    data = []
-    for filename in os.listdir(data_dir):
-        file = os.path.join(data_dir, filename)
-        with open(file) as f:
-            content = f.readline().lower()
-            content_formatted = tokenizer.tokenize(content)
-            data.append(content_formatted)
-    return data
-
-
 if __name__ == "__main__":
-    # working_dir = config.imbd_path
-    # train_dir = os.path.join(working_dir, "train")
-    # train_pos_dir = os.path.join(train_dir, "pos")
-    # train_neg_dir = os.path.join(train_dir, "neg")
-    # test_dir = os.path.join(working_dir, "test")
-    # test_pos_dir = os.path.join(test_dir, "pos")
-    # test_neg_dir = os.path.join(test_dir, "neg")
-    # train = gen_formatted_review(train_pos_dir)
-    # train2 = gen_formatted_review(train_neg_dir)
-    # train.extend(train2)
-    # test = gen_formatted_review(test_pos_dir)
-    # test2 = gen_formatted_review(test_neg_dir)
-    # test.extend(test2)
-    # train.extend(test)
-    # embedding_size = 50
-    # fname = os.path.join(working_dir, "imdb_embedding")
-    # if os.path.isfile(fname):
-    #     embedding_model = Word2Vec.load(fname)
-    # else:
-    #     embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
-    #     embedding_model.save(fname)
-    # word1 = "great"
-    # word2 = "horrible"
-    # print("similar words of {}:".format(word1))
-    # print(embedding_model.most_similar('great'))
-    # print("similar words of {}:".format(word2))
-    # print(embedding_model.most_similar('horrible'))
 
     # 获得数据
     position_data = pd.read_csv(config.positive_review_path, sep='\t')
@@ -58,16 +20,16 @@ if __name__ == "__main__":
 
     # 训练embedding层
     embedding_size = 100
-    embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
-    embedding_model.save(config.embedding_path)
+    if os.path.isfile(config.embedding_path):
+        embedding_model = Word2Vec.load(config.embedding_path)
+    else:
+        embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
+        embedding_model.save(config.embedding_path)
 
     # 测试直观效果
     word1 = "好"
     word2 = "坏"
-    print("similar words of {}:".format(word1))
+    print("{}的相似词汇是:".format(word1))
     print(embedding_model.most_similar(word1))
-    print("similar words of {}:".format(word2))
+    print("{}的相似词汇是:".format(word2))
     print(embedding_model.most_similar(word2))
-
-
-

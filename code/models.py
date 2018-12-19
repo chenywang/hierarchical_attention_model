@@ -1,12 +1,14 @@
 import argparse
+import json
 import os
 import pickle as pl
-import json
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
 from code.components import sequence, attention, BucketedDataIterator, visualize
+from code.data_utils import gen_batch_train_data
 from config import config
 
 
@@ -129,6 +131,8 @@ if __name__ == "__main__":
     on_value = 1
     off_value = 0
 
+    train_data = pd.read_csv(config.train_path, sep='\t')
+    test_data = pd.read_csv(config.test_path, sep='\t')
     with tf.Session() as sess:
         train_writer = tf.summary.FileWriter(log_dir, sess.graph)
         sess.run(tf.global_variables_initializer())
@@ -144,13 +148,14 @@ if __name__ == "__main__":
         for epoch in range(resume_from_epoch + 1, resume_from_epoch + epochs + 1):
             avg_cost = 0.0
             print("epoch {}".format(epoch))
-            for i in range(total_batch):
-                batch_data, batch_label, seqlens = data.next_batch(train_batch_size)
+            # for i in range(total_batch):
+            for batch_data, batch_label, sentence_length_list in gen_batch_train_data(train_data, word2index,
+                                                                                      sentence_length, max_rev_length):
                 batch_label_formatted = tf.one_hot(indices=batch_label, depth=depth, on_value=on_value,
                                                    off_value=off_value, axis=-1)
 
                 batch_labels = sess.run(batch_label_formatted)
-                feed = {inputs: batch_data, revlens: seqlens, y_: batch_labels, keep_probs: [0.9, 0.9]}
+                feed = {inputs: batch_data, revlens: sentence_length_list, y_: batch_labels, keep_probs: [0.9, 0.9]}
                 _, c, summary_in_batch_train = sess.run([optimizer, cross_entropy, summary_op], feed_dict=feed)
                 avg_cost += c / total_batch
                 train_writer.add_summary(summary_in_batch_train, epoch * total_batch + i)
@@ -185,4 +190,4 @@ if __name__ == "__main__":
         print("正在生成可视化h5界面")
         for i in range(100):
             visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test,
-                  y_test, y_predict, i)
+                      y_test, y_predict, i)

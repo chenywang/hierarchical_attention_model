@@ -1,13 +1,12 @@
 import argparse
+import json
 import os
 import pickle as pl
 import random
-import re
-import json
+
 import numpy as np
 import pandas as pd
 from gensim.models import Word2Vec
-from nltk.tokenize import RegexpTokenizer
 from tensorflow.contrib.keras import preprocessing
 
 from config import config
@@ -40,20 +39,6 @@ def get_sentence(index2word, sen_index):
     return ' '.join([index2word[index] for index in sen_index])
 
 
-def gen_data(data_dir, word2index):
-    data = []
-    tokenizer = RegexpTokenizer(r'\w+|[?!]|\.{1,}')
-    for filename in os.listdir(data_dir):
-        file = os.path.join(data_dir, filename)
-        with open(file) as f:
-            content = f.readline().lower()
-            content_formatted = ' '.join(tokenizer.tokenize(content))[:-1]
-            sents = re.compile("[?!]|\.{1,}").split(content_formatted)
-            sents_index = [sentence2index(sent, word2index) for sent in sents]
-            data.append(sents_index)
-    return data
-
-
 def get_train_data(paragraph, word2index):
     sentences = paragraph.split('.')
     sentences = filter(lambda s: len(s) != 0, sentences)
@@ -83,7 +68,7 @@ def preprocess_review(data, sent_length, max_rev_len, keep_in_dict=10000):
 
 
 def split_train_and_test(x_data, y_data, data_review_lens, split_fraction=0.75):
-    combination_list = [(line[0], line[1], line[2])for line in zip(x_data, y_data, data_review_lens)]
+    combination_list = [(line[0], line[1], line[2]) for line in zip(x_data, y_data, data_review_lens)]
     random.shuffle(combination_list)
     size = len(combination_list)
     train_index = int(size * split_fraction)
@@ -108,89 +93,30 @@ if __name__ == "__main__":
     sentence_length = args.sentence_length
     max_rev_length = args.max_rev_length
 
-    # print('sent length is set as {}'.format(sentence_length))
-    # print('rev length is set as {}'.format(max_rev_length))
-    # working_dir = config.imbd_path
-    # train_dir = os.path.join(working_dir, "train")
-    # train_pos_dir = os.path.join(train_dir, "pos")
-    # train_neg_dir = os.path.join(train_dir, "neg")
-    # test_dir = os.path.join(working_dir, "test")
-    # test_pos_dir = os.path.join(test_dir, "pos")
-    # test_neg_dir = os.path.join(test_dir, "neg")
-    #
-    # if os.path.isfile(config.embedding_path):
-    #     embedding_model = Word2Vec.load(config.embedding_path)
-    # else:
-    #     raise ValueError("please run gen_word_embeddings.py first to generate embeddings!")
-    # print("generate word to index dictionary and inverse dictionary...")
-    # emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
-    # print("format each review into sentences, and also represent each word by index...")
-    # train_pos_data = gen_data(train_pos_dir, word2index)
-    # train_neg_data = gen_data(train_neg_dir, word2index)
-    # train_data = train_neg_data + train_pos_data
-    # test_pos_data = gen_data(test_pos_dir, word2index)
-    # test_neg_data = gen_data(test_neg_dir, word2index)
-    # test_data = test_neg_data + test_pos_data
-    #
-    # print("preprocess each review...")
-    # x_train, train_review_lens = preprocess_review(train_data, sentence_length, max_rev_length)
-    # x_test, test_review_lens = preprocess_review(test_data, sentence_length, max_rev_length)
-    # y_train = [0] * len(train_neg_data) + [1] * len(train_pos_data)
-    # y_test = [0] * len(test_neg_data) + [1] * len(test_pos_data)
-    #
-    # print("save word embedding matrix ...")
-    # emb_filename = os.path.join(working_dir, "emb_matrix")
-    # # emb_matrix.dump(emb_filename)
-    # pl.dump([emb_matrix, word2index, index2word], open(emb_filename, "wb"))
-    #
-    # print("save review data for training...")
-    # df_train = pd.DataFrame({'review': x_train, 'label': y_train, 'length': train_review_lens})
-    # train_filename = os.path.join(working_dir, "train_df_file")
-    # df_train.to_pickle(train_filename)
-    #
-    # print("save review data for testing...")
-    # df_test = pd.DataFrame({'review': x_test, 'label': y_test, 'length': test_review_lens})
-    # test_filename = os.path.join(working_dir, "test_df_file")
-    # df_test.to_pickle(test_filename)
-
-    ########
-
-    # 载入embedding层
+    # 载入并保存embedding层
     if os.path.isfile(config.embedding_path):
         embedding_model = Word2Vec.load(config.embedding_path)
     else:
         raise ValueError("please run gen_word_embeddings.py first to generate embeddings!")
     print("generate word to index dictionary and inverse dictionary...")
     emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
-
-    # 获得数据
-    size = 100000
-    position_data = pd.read_csv(config.positive_review_path, sep='\t')
-    negative_data = pd.read_csv(config.negative_review_path, sep='\t')
-    position_data = position_data[:size]
-    negative_data = negative_data[:size]
-    data = position_data.append(negative_data)
-    x_data = list(data['context'].apply(get_train_data, word2index=word2index))
-    y_data = [0] * position_data.shape[0] + [1] * negative_data.shape[0]
-
-    # 预处理
-    x_data, data_review_lens = preprocess_review(x_data, sentence_length, max_rev_length)
-
-    # 分为训练与测试样本
-    x_train, y_train, train_review_lens, x_test, y_test, test_review_lens = \
-        split_train_and_test(x_data, y_data, data_review_lens)
-
-    # 保存embedding层
     pl.dump([emb_matrix, word2index, index2word], open(config.embedding_pickle_path, "wb"))
 
-    print("save review data for training...")
-    df_train = pd.DataFrame({'review': x_train, 'label': y_train, 'length': train_review_lens})
-    df_train['review'] = df_train['review'].apply(lambda x: json.dumps(x.tolist()))
-    df_train.to_csv(config.train_path, index=False, sep='\t', header=True)
-    # df_train.to_pickle(config.train_path, protocol=4)
+    # 获得数据
+    position_data = pd.read_csv(config.positive_review_path, sep='\t')
+    negative_data = pd.read_csv(config.negative_review_path, sep='\t')
+    data = position_data.append(negative_data)
+    y_data = [0] * position_data.shape[0] + [1] * negative_data.shape[0]
+    data['label'] = y_data
+    data = data[['context', 'label']].sample(frac=1.0).reset_index(drop=True)
 
-    print("save review data for testing...")
-    df_test = pd.DataFrame({'review': x_test, 'label': y_test, 'length': test_review_lens})
-    df_test['review'] = df_test['review'].apply(lambda x: json.dumps(x.tolist()))
-    df_train.to_csv(config.test_path, index=False, sep='\t', header=True)
-    # df_test.to_pickle(config.test_path, protocol=4)
+    # 分为训练与测试样本
+    split_fraction = 0.75
+    split_index = int(0.75 * data.shape[0])
+    train_data, test_data = data[:split_index], data[split_index:]
+
+    train_data.to_csv(config.train_path, sep='\t', header=True, index=False)
+    test_data.to_csv(config.test_path, sep='\t', header=True, index=False)
+
+
+
