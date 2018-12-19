@@ -2,11 +2,24 @@
 # @Author : Michael-Wang
 import os
 
-from process.components import get_sentence
 from config import config
-def visualize(sess, model, batch_x, batch_y, sentence_length_list):
-    alphas_words, alphas_sentences = model.predict(sess, batch_x, batch_y, sentence_length_list)
+from process.components import get_sentence
 
+
+def visualize(sess, model, batch_x, batch_y, sentence_length_list, paragraph_list):
+    probability_list, alphas_words, alphas_sentences = model.predict(sess, batch_x, batch_y, sentence_length_list)
+    size = batch_x.shape[0]
+    for i in range(size):
+        h5_path = os.path.join(config.visualization_path, "visualize_{}.html".format(i))
+        with open(h5_path, "w") as h5_file:
+            actual_label = '消极' if batch_y[i] == 1 else '积极'
+            predict_label = '消极' if probability_list[i][1] >= 0.5 else '积极'
+            h5_file.write("该评论实际是{}评论，模型预测是{}评论个.({}的消极概率)"
+                          .format(actual_label, predict_label, probability_list[i][1]))
+            for sentence in paragraph_list[i]:
+                h5_file.write('<font style="background: rgba(255, 255, 0, %f)">%s </font>' % (alphas_words[i], sentence))
+
+if __name__ == '__main__':
 
 
 def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test, y_test,

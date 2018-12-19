@@ -1,9 +1,12 @@
 import os
+
 import numpy as np
 import tensorflow as tf
 
 from process.components import attention, sequence
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 class HierarchicalModel:
     def __init__(self, max_sentence_length, max_review_length, embeddings, hidden_size=50, attention_size=50,
@@ -28,6 +31,7 @@ class HierarchicalModel:
         self.cross_entropy = None
         self.alphas_words = None
         self.alphas_sentences = None
+        self.dense = None
 
         self.init_placeholders()
         self.build_model()
@@ -62,14 +66,15 @@ class HierarchicalModel:
         sentence_attention_inputs = tf.nn.dropout(sentence_attention_inputs, self.keep_probabilities[1])
 
         with tf.variable_scope("sentence_attention"):
-            sentence_attention_outputs, self.alphas_sentences = attention(sentence_attention_inputs, self.attention_size)
+            sentence_attention_outputs, self.alphas_sentences = attention(sentence_attention_inputs,
+                                                                          self.attention_size)
 
         # 全链接层
         with tf.variable_scope("out_weights1"):
             weights_out = tf.get_variable(name="output_w", dtype=tf.float32,
                                           shape=[self.hidden_size * 2, self.n_classes])
             biases_out = tf.get_variable(name="output_bias", dtype=tf.float32, shape=[self.n_classes])
-        dense = tf.matmul(sentence_attention_outputs, weights_out) + biases_out
+        self.dense = tf.matmul(sentence_attention_outputs, weights_out) + biases_out
 
         # 优化层
         one_hot_y = tf.one_hot(indices=self.y_, depth=self.n_classes, on_value=self.on_value, off_value=self.off_value,
@@ -77,14 +82,13 @@ class HierarchicalModel:
         self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=dense))
         with tf.variable_scope('optimizers', reuse=None):
             self.optimizer = tf.train.AdamOptimizer(0.01).minimize(self.cross_entropy)
-        y_predict = tf.argmax(dense, 1)
+        y_predict = tf.argmax(self.dense, 1)
         correct_prediction = tf.equal(y_predict, tf.argmax(one_hot_y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         tf.summary.scalar("cost", self.cross_entropy)
         tf.summary.scalar("accuracy", self.accuracy)
 
         self.summary_op = tf.summary.merge_all()
-
 
     def train(self, sess, x_data, y_data, sentence_length_list):
         feed = {self.inputs: x_data, self.review_length_list: sentence_length_list, self.y_: y_data,
@@ -102,8 +106,9 @@ class HierarchicalModel:
     def predict(self, sess, x_data, y_data, sentence_length_list):
         feed = {self.inputs: x_data, self.review_length_list: sentence_length_list, self.y_: y_data,
                 self.keep_probabilities: [1.0, 1.0]}
-        alphas_words, alphas_sentences = sess.run([self.alphas_words, self.alphas_sentences], feed_dict=feed)
-        return alphas_words, alphas_sentences
+        dense, alphas_words, alphas_sentences = sess.run([self.dense, self.alphas_words, self.alphas_sentences],
+                                                         feed_dict=feed)
+        return dense, alphas_words, alphas_sentences
 
     @staticmethod
     def save(sess, saver, path, global_step=None):
@@ -114,4 +119,3 @@ class HierarchicalModel:
     def restore(sess, saver, model_path):
         saver.restore(sess, model_path)
         print("模型载入完成")
-
