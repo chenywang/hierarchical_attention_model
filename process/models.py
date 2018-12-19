@@ -124,8 +124,9 @@ if __name__ == "__main__":
     on_value = 1
     off_value = 0
 
-    train_data = pd.read_csv(config.train_path, sep='\t')
-    test_data = pd.read_csv(config.test_path, sep='\t')
+    train_size = test_size = 100000
+    train_data = pd.read_csv(config.train_path, sep='\t')[:train_size]
+    test_data = pd.read_csv(config.test_path, sep='\t')[:test_size]
     with tf.Session() as sess:
         train_writer = tf.summary.FileWriter(log_dir, sess.graph)
         sess.run(tf.global_variables_initializer())

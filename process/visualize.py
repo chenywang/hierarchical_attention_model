@@ -6,7 +6,7 @@ from process.components import get_sentence
 from config import config
 def visualize(sess, model, batch_x, batch_y, sentence_length_list):
     alphas_words, alphas_sentences = model.predict(sess, batch_x, batch_y, sentence_length_list)
-    
+
 
 
 def visualize(sess, inputs, revlens, max_rev_length, keep_probs, index2word, alphas_words, alphas_sents, x_test, y_test,

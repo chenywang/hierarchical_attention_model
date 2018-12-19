@@ -8,7 +8,7 @@ import pandas as pd
 from process.preprocess_reviews import preprocess_review, get_train_data
 
 
-def gen_batch_train_data(data, word2index, sentence_length, max_rev_length, data_path=None, batch_size=10000):
+def gen_batch_train_data(data, word2index, sentence_length, max_rev_length, data_path=None, batch_size=512):
     if data is None:
         data = pd.read_csv(data_path, sep='\t')
     times = int(math.ceil(data.shape[0] / batch_size))

@@ -1,8 +1,9 @@
+import os
 import numpy as np
 import tensorflow as tf
 
 from process.components import attention, sequence
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class HierarchicalModel:
     def __init__(self, max_sentence_length, max_review_length, embeddings, hidden_size=50, attention_size=50,
