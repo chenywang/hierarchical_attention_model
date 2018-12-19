@@ -79,7 +79,7 @@ class HierarchicalModel:
         # 优化层
         one_hot_y = tf.one_hot(indices=self.y_, depth=self.n_classes, on_value=self.on_value, off_value=self.off_value,
                                axis=-1)
-        self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=dense))
+        self.cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=self.dense))
         with tf.variable_scope('optimizers', reuse=None):
             self.optimizer = tf.train.AdamOptimizer(0.01).minimize(self.cross_entropy)
         y_predict = tf.argmax(self.dense, 1)

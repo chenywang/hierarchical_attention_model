@@ -17,5 +17,4 @@ def gen_batch_train_data(data, word2index, sentence_length, max_rev_length, data
         batch_x_data = list(batch_data['context'].apply(get_train_data, word2index=word2index))
         batch_x_data, batch_data_review_lens = preprocess_review(batch_x_data, sentence_length, max_rev_length)
         batch_y_data = list(batch_data['label'])
-        # yield pd.DataFrame({'review': batch_x_data, 'label': batch_y_data, 'length': batch_data_review_lens})
         yield np.asarray(batch_x_data), batch_y_data, batch_data_review_lens
