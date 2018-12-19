@@ -25,6 +25,8 @@ class HierarchicalModel:
         self.review_length_list = None
         self.keep_probabilities = None
         self.cross_entropy = None
+        self.alphas_words = None
+        self.alphas_sentences = None
 
         self.init_placeholders()
         self.build_model()
@@ -48,7 +50,7 @@ class HierarchicalModel:
 
         attention_inputs = tf.nn.dropout(attention_inputs, self.keep_probabilities[0])
         with tf.variable_scope("word_attention"):
-            word_attention_output, alphas_words = attention(attention_inputs, self.attention_size)
+            word_attention_output, self.alphas_words = attention(attention_inputs, self.attention_size)
 
         word_attention_output = tf.reshape(word_attention_output, [-1, self.max_review_length, combined_hidden_size])
 
@@ -59,14 +61,14 @@ class HierarchicalModel:
         sentence_attention_inputs = tf.nn.dropout(sentence_attention_inputs, self.keep_probabilities[1])
 
         with tf.variable_scope("sentence_attention"):
-            sentence_attention_outs, alphas_sentences = attention(sentence_attention_inputs, self.attention_size)
+            sentence_attention_outputs, self.alphas_sentences = attention(sentence_attention_inputs, self.attention_size)
 
         # 全链接层
         with tf.variable_scope("out_weights1"):
             weights_out = tf.get_variable(name="output_w", dtype=tf.float32,
                                           shape=[self.hidden_size * 2, self.n_classes])
             biases_out = tf.get_variable(name="output_bias", dtype=tf.float32, shape=[self.n_classes])
-        dense = tf.matmul(sentence_attention_outs, weights_out) + biases_out
+        dense = tf.matmul(sentence_attention_outputs, weights_out) + biases_out
 
         # 优化层
         one_hot_y = tf.one_hot(indices=self.y_, depth=self.n_classes, on_value=self.on_value, off_value=self.off_value,
@@ -82,7 +84,6 @@ class HierarchicalModel:
 
         self.summary_op = tf.summary.merge_all()
 
-        return dense, alphas_words, alphas_sentences
 
     def train(self, sess, x_data, y_data, sentence_length_list):
         feed = {self.inputs: x_data, self.review_length_list: sentence_length_list, self.y_: y_data,
@@ -97,6 +98,12 @@ class HierarchicalModel:
         accuracy = sess.run([self.accuracy], feed_dict=feed)
         return accuracy
 
+    def predict(self, sess, x_data, y_data, sentence_length_list):
+        feed = {self.inputs: x_data, self.review_length_list: sentence_length_list, self.y_: y_data,
+                self.keep_probabilities: [1.0, 1.0]}
+        alphas_words, alphas_sentences = sess.run([self.alphas_words, self.alphas_sentences], feed_dict=feed)
+        return alphas_words, alphas_sentences
+
     @staticmethod
     def save(sess, saver, path, global_step=None):
         save_path = saver.save(sess, save_path=path, global_step=global_step, write_meta_graph=False)
@@ -106,3 +113,4 @@ class HierarchicalModel:
     def restore(sess, saver, model_path):
         saver.restore(sess, model_path)
         print("模型载入完成")
+
