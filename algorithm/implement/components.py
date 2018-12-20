@@ -54,7 +54,7 @@ def visualize(review, alphas_words_list, alphas_sentences_list, index, y, probab
         actual_label = '消极' if y == 1 else '积极'
         predict_label = '消极' if probability[1] >= 0.5 else '积极'
         h5_file.write("<head><meta charset='utf-8'></head>")
-        h5_file.write("该评论实际：{}，模型预测：{}，消极概率：{})<br>"
+        h5_file.write("该评论实际：{}，模型预测：{}，消极概率：{}<br>"
                       .format(actual_label, predict_label, probability[1]))
         # 去除空句子的分担的比例
         alphas_sentences_list = redistribute(alphas_sentences_list[:review_length])

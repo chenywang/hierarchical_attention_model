@@ -97,4 +97,6 @@ logdir/
 *.pyc
 data/
 logs/
-visualization
+logs_bk/
+visualization/
+visualization_bk/
