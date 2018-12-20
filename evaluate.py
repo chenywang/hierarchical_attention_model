@@ -52,6 +52,9 @@ if __name__ == "__main__":
         train_writer = tf.summary.FileWriter(log_dir, sess.graph)
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
+        print("载入模型中...")
+        latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
+        model.restore(sess, saver, latest_cpt_file)
 
         print("正在评估...")
         for index, (batch_data, batch_label, review_length_list) in \
