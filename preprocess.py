@@ -40,7 +40,10 @@ def get_sentence(index2word, sen_index):
 def get_train_data(paragraph, word2index):
     sentences = paragraph.split('.')
     sentences = list(filter(lambda s: len(s) != 0, sentences))
-    return [sentence2index(sentence, word2index) for sentence in sentences]
+    if sentences:
+        return [sentence2index(sentence, word2index) for sentence in sentences]
+    else:
+        return [[]]
 
 
 if __name__ == "__main__":

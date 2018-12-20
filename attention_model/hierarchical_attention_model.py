@@ -49,9 +49,11 @@ class HierarchicalModel:
         embedding_output = tf.nn.embedding_lookup(tf.convert_to_tensor(self.embeddings, np.float32), self.inputs)
         embedding_output = tf.reshape(embedding_output, [-1, self.max_sentence_length, self.embedding_dims])
 
+        # 双向rnn层
         with tf.variable_scope("word_rnn"):
             word_rnn_outputs = sequence(embedding_output, self.hidden_size, None)
 
+        # word级别的attention层
         attention_inputs = tf.concat(word_rnn_outputs, 2)
         combined_hidden_size = int(attention_inputs.shape[2])
 
@@ -61,6 +63,7 @@ class HierarchicalModel:
 
         word_attention_output = tf.reshape(word_attention_output, [-1, self.max_review_length, combined_hidden_size])
 
+        # sentence级别的attention层
         with tf.variable_scope("sentence_rnn"):
             sentence_rnn_outputs = sequence(word_attention_output, self.hidden_size, self.review_length_list)
 
@@ -89,9 +92,10 @@ class HierarchicalModel:
         y_predict = tf.argmax(self.dense, 1)
         correct_prediction = tf.equal(y_predict, tf.argmax(one_hot_y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+        # summary
         tf.summary.scalar("cost", self.cross_entropy)
         tf.summary.scalar("accuracy", self.accuracy)
-
         self.summary_op = tf.summary.merge_all()
 
     def train(self, sess, x_data, y_data, sentence_length_list):

@@ -11,7 +11,7 @@ from config import config
 from util.data_utils import gen_batch_train_data
 from attention_model.hierarchical_attention_model import HierarchicalModel
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
 
     print("载入训练与测试数据...")
-    train_size = test_size = 51000
+    train_size = test_size = 50000
     train_data = pd.read_csv(config.train_path, sep='\t')[:train_size]
     test_data = pd.read_csv(config.test_path, sep='\t')[:test_size]
 
@@ -65,15 +65,15 @@ if __name__ == "__main__":
             print("it resumes from previous epoch of {}".format(resume_from_epoch))
             model.restore(sess, saver, latest_cpt_file)
         for epoch in range(resume_from_epoch + 1, resume_from_epoch + epochs + 1):
-            for index, (batch_data, batch_label, sentence_length_list) in \
+            for index, (batch_data, batch_label, review_length_list) in \
                     enumerate(gen_batch_train_data(train_data, word2index, max_sentence_length, max_review_length)):
-                loss = model.train(sess, batch_data, batch_label, sentence_length_list)
+                loss = model.train(sess, batch_data, batch_label, review_length_list)
                 print("第{}个epoch的第{}个batch的交叉熵为: {}".format(epoch, index, loss))
 
             model.save(sess, saver, os.path.join(log_dir, "model.ckpt"), epoch)
 
         print("正在评估...")
-        for index, (batch_data, batch_label, sentence_length_list) in \
+        for index, (batch_data, batch_label, review_length_list) in \
                 enumerate(gen_batch_train_data(test_data, word2index, max_sentence_length, max_review_length)):
-            accuracy = model.evaluate(sess, batch_data, batch_label, sentence_length_list)
+            accuracy = model.evaluate(sess, batch_data, batch_label, review_length_list)
             print("第{}个batch测试集的accuracy为{}".format(index, accuracy))

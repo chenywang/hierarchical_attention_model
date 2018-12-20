@@ -41,7 +41,8 @@ if __name__ == '__main__':
     test_data = test_data[test_data['review_length'] > 4][:test_size]
     review_list = list(test_data['context'])
     y_list = list(test_data['label'])
-    batch_data, batch_label, review_length_list = next(gen_batch_train_data(test_data, word2index,
+    batch_data, batch_label, review_length_list = next(gen_batch_train_data(test_data,
+                                                                            word2index,
                                                                             max_sentence_length,
                                                                             max_review_length,
                                                                             batch_size=test_size,
@@ -54,8 +55,9 @@ if __name__ == '__main__':
         review_probability_list, alphas_words_matrix, alphas_sentences_matrix = model.predict(sess, batch_data,
                                                                                               review_length_list)
     alphas_words_matrix = alphas_words_matrix.reshape((test_size, max_review_length, max_sentence_length))
-
+    print('生成可视化h5中...')
     for index, review, alphas_words_list, alphas_sentences_list, y, probability in \
             zip(range(test_size), review_list, alphas_words_matrix, alphas_sentences_matrix, y_list,
                 review_probability_list):
         visualize(review, alphas_words_list, alphas_sentences_list, index, y, probability)
+    print('生成完毕')
