@@ -34,7 +34,7 @@ if __name__ == "__main__":
     (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
 
     print("载入训练与测试数据...")
-    train_size = test_size = 1000
+    train_size = test_size = 500000
     train_data = pd.read_csv(config.train_path, sep='\t')[:train_size]
     test_data = pd.read_csv(config.test_path, sep='\t')[:test_size]
 
