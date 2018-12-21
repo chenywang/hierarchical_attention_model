@@ -49,6 +49,6 @@ class Processor:
 
         # 输出h5
         alphas_words_list = alphas_words_list.reshape((1, self.max_review_length, self.max_sentence_length))
-        return visualize(review, alphas_words_list[0], alphas_sentences_list[0], 1, 1, probability[0],
+        return visualize(review, alphas_words_list[0], alphas_sentences_list[0], 0, 0, probability[0],
                          write_actual=False,
-                         write_h5=True)
+                         write_h5=False)
