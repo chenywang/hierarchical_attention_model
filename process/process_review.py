@@ -22,9 +22,9 @@ class Processor:
         self.max_review_length = 15
         self.model = HierarchicalModel(self.max_sentence_length, self.max_review_length, self.emb_matrix)
         self.saver = tf.train.Saver()
-        with tf.Session() as sess:
-            latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
-            self.model.restore(sess, self.saver, latest_cpt_file)
+        self.sess = tf.Session()
+        latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
+        self.model.restore(self.sess, self.saver, latest_cpt_file)
 
         self.segmentor = MySegmentor()
 
@@ -42,10 +42,7 @@ class Processor:
                                                            batch_size=1,
                                                            shuffle=False))
         # 模型预测
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            sess.run(tf.local_variables_initializer())
-            probability, alphas_words_list, alphas_sentences_list = self.model.predict(sess, data, review_length)
+        probability, alphas_words_list, alphas_sentences_list = self.model.predict(self.sess, data, review_length)
 
         # 输出h5
         alphas_words_list = alphas_words_list.reshape((1, self.max_review_length, self.max_sentence_length))
