@@ -46,6 +46,14 @@ def get_train_data(paragraph, word2index):
         return [[]]
 
 
+def positive_and_negative(line):
+    if line['desc_scr'] + line['lgst_scr'] + line['serv_scr'] <= 13 and \
+            (line['desc_scr'] < 3 or line['lgst_scr'] < 3 or line['serv_scr'] < 3):
+        return 1
+    else:
+        return 0
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some important parameters.')
     parser.add_argument('-s', '--max_sentence_length', type=int, default=70,
@@ -54,9 +62,7 @@ if __name__ == "__main__":
                         help='fix the maximum review length')
 
     # 获得数据
-    position_data = pd.read_csv(config.positive_review_path, sep='\t')
-    negative_data = pd.read_csv(config.negative_review_path, sep='\t')
-    data = position_data.append(negative_data)
+    data = pd.read_csv(config.review_path, sep='\t')
 
     # token化数据
     tokenizer = RegexpTokenizer(r'\w+')
@@ -89,8 +95,7 @@ if __name__ == "__main__":
     pl.dump([emb_matrix, word2index, index2word], open(config.embedding_pickle_path, "wb"))
 
     # 获得数据
-    y_data = [0] * position_data.shape[0] + [1] * negative_data.shape[0]
-    data['label'] = y_data
+    data['label'] = data.apply(positive_and_negative, axis=1)
     data = data[['context', 'label']].sample(frac=1.0).reset_index(drop=True)
 
     # 分为训练与测试样本

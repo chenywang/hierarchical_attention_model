@@ -21,22 +21,14 @@ if __name__ == "__main__":
                         help='pick up the latest check point and resume')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='epochs for training')
-    parser.add_argument('-m', '--max_sentence_length', type=int, default=70,
-                        help='fix the sentence length in all reviews, 需要跟预处理保持一致')
-    parser.add_argument('-M', '--max_rev_length', type=int, default=15,
-                        help='fix the maximum review length, 需要跟预处理保持一致')
 
     # 设置基本参数
     args = parser.parse_args()
     train_batch_size = args.batch_size
     resume = args.resume
     epochs = args.epochs
-    max_sentence_length = args.max_sentence_length
-    max_review_length = args.max_rev_length
-    log_dir = config.log_path
-    on_value = 1
-    off_value = 0
-    depth = n_classes = 2
+    max_sentence_length = 70
+    max_review_length = 15
 
     print("载入嵌入层...")
     (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
@@ -52,7 +44,7 @@ if __name__ == "__main__":
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        train_writer = tf.summary.FileWriter(log_dir, sess.graph)
+        train_writer = tf.summary.FileWriter(config.log_path, sess.graph)
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
         #         insert this snippet to restore a model:
@@ -70,7 +62,7 @@ if __name__ == "__main__":
                 loss = model.train(sess, batch_data, batch_label, review_length_list)
                 print("第{}个epoch的第{}个batch的交叉熵为: {}".format(epoch, index, loss))
 
-            model.save(sess, saver, os.path.join(log_dir, "model.ckpt"), epoch)
+            model.save(sess, saver, os.path.join(config.log_path, "model.ckpt"), epoch)
 
         print("正在评估...")
         for index, (batch_data, batch_label, review_length_list) in \
