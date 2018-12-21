@@ -16,7 +16,7 @@ class Config(object):
     embedding_path = review_path + 'review_embedding.model'
     embedding_pickle_path = review_path + 'review_embedding_layer.pickle'
     positive_review_path = os.path.join(review_path, 'positive_review.csv')
-    review_path = os.path.join(review_path, 'review.csv')
+    train_review_path = os.path.join(review_path, 'review.csv')
     negative_review_path = os.path.join(review_path, 'negative_review.csv')
     train_path = os.path.join(review_path, "train_data.csv")
     test_path = os.path.join(review_path, "test_data.csv")

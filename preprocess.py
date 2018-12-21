@@ -62,7 +62,7 @@ if __name__ == "__main__":
                         help='fix the maximum review length')
 
     # 获得数据
-    data = pd.read_csv(config.review_path, sep='\t')
+    data = pd.read_csv(config.train_review_path, sep='\t')
 
     # token化数据
     tokenizer = RegexpTokenizer(r'\w+')
