@@ -47,25 +47,35 @@ def attention(attention_inputs, attention_size):
     return atten_outs, alphas
 
 
-def visualize(review, alphas_words_list, alphas_sentences_list, index, y, probability):
+def visualize(review, alphas_words_list, alphas_sentences_list, index, y, probability, write_actual=True,
+              write_h5=True):
     sentence_list = list(filter(lambda x: len(x) != 0, review.split('.')))
     review_length = len(sentence_list)
-
-    h5_path = os.path.join(config.visualization_path, "visualize_{}.html".format(index))
-    with open(h5_path, "w") as h5_file:
+    h5_string_list = list()
+    if write_actual:
         actual_label = '消极' if y == 1 else '积极'
-        predict_label = '消极' if probability[1] >= 0.5 else '积极'
-        h5_file.write("<head><meta charset='utf-8'></head>")
-        h5_file.write("该评论实际：{}，模型预测：{}，消极概率：{}<br>"
-                      .format(actual_label, predict_label, probability[1]))
-        # 去除空句子的分担的比例
-        alphas_sentences_list = redistribute(alphas_sentences_list[:review_length])
-        for sentence, alphas_words, alphas_sentence in zip(sentence_list, alphas_words_list, alphas_sentences_list):
-            h5_file.write(
-                '<font style="background: rgba(255, 0, 0, %f)">&nbsp&nbsp&nbsp&nbsp&nbsp</font>' % alphas_sentence)
-            # 去除空字的分担的比例
-            words = sentence.split(' ')
-            alphas_words = redistribute(alphas_words[:len(words)])
-            for word, alphas_word in zip(words, alphas_words):
-                h5_file.write('<font style="background: rgba(255, 255, 0, %f)">%s </font>' % (alphas_word, word))
-            h5_file.write('<br>')
+    else:
+        actual_label = '未知'
+
+    predict_label = '消极' if probability[1] >= 0.5 else '积极'
+    h5_string_list.append("<head><meta charset='utf-8'></head>")
+    h5_string_list.append("该评论实际：{}，模型预测：{}，消极概率：{}<br>".format(actual_label, predict_label, probability[1]))
+    # 去除空句子的分担的比例
+    alphas_sentences_list = redistribute(alphas_sentences_list[:review_length])
+    for sentence, alphas_words, alphas_sentence in zip(sentence_list, alphas_words_list, alphas_sentences_list):
+        h5_string_list.append(
+            '<font style="background: rgba(255, 0, 0, %f)">&nbsp&nbsp&nbsp&nbsp&nbsp</font>' % alphas_sentence)
+        # 去除空字的分担的比例
+        words = sentence.split(' ')
+        alphas_words = redistribute(alphas_words[:len(words)])
+        for word, alphas_word in zip(words, alphas_words):
+            h5_string_list.append('<font style="background: rgba(255, 255, 0, %f)">%s </font>' % (alphas_word, word))
+        h5_string_list.append('<br>')
+    h5_string = ''.join(h5_string_list)
+
+    # 写入文件
+    if write_h5:
+        h5_path = os.path.join(config.visualization_path, "visualize_{}.html".format(index))
+        with open(h5_path, "w") as h5_file:
+            h5_file.write(h5_string)
+    return h5_string

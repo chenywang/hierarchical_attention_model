@@ -29,10 +29,10 @@ def review_to_tensor(review_list, word2index, max_sentence_length, max_review_le
         review_tensor = preprocessing.sequence.pad_sequences(review_tensor, maxlen=max_sentence_length,
                                                              padding="post", truncating="post",
                                                              value=0)
+        review_lens.append(review_tensor.shape[0])
         review_tensor = preprocessing.sequence.pad_sequences([review_tensor], maxlen=max_review_length,
                                                              padding="post", truncating="post",
                                                              value=np.zeros(max_sentence_length))[0]
-        review_lens.append(review_tensor.shape[0])
         review_tensor_list[index] = review_tensor
 
     return review_tensor_list, np.array(review_lens)

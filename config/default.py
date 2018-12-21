@@ -24,3 +24,9 @@ class Config(object):
 
     log_path = project_path + '/logs/'
     visualization_path = project_path + '/visualization/'
+
+    ltp_model_path = '/Users/michael-wang/pdd_projects/data/ltp_data/'
+    seg_model_path = ltp_model_path + 'cws.model'
+    user_dict_path = project_path + '/customize_dict/user_dict.dict'
+
+
