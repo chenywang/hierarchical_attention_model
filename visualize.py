@@ -6,10 +6,10 @@ import pickle as pl
 import pandas as pd
 import tensorflow as tf
 
-from config import config
 from algorithm.implement.components import visualize
-from util.data_utils import gen_batch_train_data
 from attention_model.hierarchical_attention_model import HierarchicalModel
+from config import config
+from util.data_utils import gen_batch_train_data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
@@ -22,9 +22,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     max_sentence_length = args.max_sentence_length
     max_review_length = args.max_rev_length
-    on_value = 1
-    off_value = 0
-    depth = n_classes = 2
 
     print("载入嵌入层...")
     (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
@@ -55,6 +52,7 @@ if __name__ == '__main__':
         review_probability_list, alphas_words_matrix, alphas_sentences_matrix = model.predict(sess, batch_data,
                                                                                               review_length_list)
     alphas_words_matrix = alphas_words_matrix.reshape((test_size, max_review_length, max_sentence_length))
+
     print('生成可视化h5中...')
     for index, review, alphas_words_list, alphas_sentences_list, y, probability in \
             zip(range(test_size), review_list, alphas_words_matrix, alphas_sentences_matrix, y_list,
