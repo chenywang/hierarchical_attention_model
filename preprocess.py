@@ -75,12 +75,10 @@ if __name__ == "__main__":
 
     # 训练embedding层
     embedding_size = 100
-    if os.path.isfile(embedding_path):
-        embedding_model = Word2Vec.load(embedding_path)
-    else:
-        print("保存gensim的word2vec模型")
-        embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
-        embedding_model.save(embedding_path)
+    print("生成gensim的word2vec模型中...")
+    embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
+    embedding_model.save(embedding_path)
+    print("生成gensim的word2vec生成完毕")
 
     # 测试直观效果
     word1 = "好"
@@ -94,9 +92,10 @@ if __name__ == "__main__":
     max_sentence_length = args.max_sentence_length
     max_rev_length = args.max_rev_length
 
-    print("保存embedding层...")
+    print("保存embedding层中...")
     emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
     pl.dump([emb_matrix, word2index, index2word], open(embedding_pickle_path, "wb"))
+    print("保存embedding层完毕")
 
     # 获得数据
     data['label'] = data.apply(positive_and_negative, axis=1)

@@ -6,6 +6,7 @@ import pickle as pl
 
 import pandas as pd
 import tensorflow as tf
+import time
 
 from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
@@ -65,8 +66,9 @@ if __name__ == "__main__":
         for epoch in range(resume_from_epoch + 1, resume_from_epoch + epochs + 1):
             for index, (batch_data, batch_label, review_length_list) in \
                     enumerate(gen_batch_train_data(train_data, word2index, max_sentence_length, max_review_length)):
+                t1 = time.time()
                 loss = model.train(sess, batch_data, batch_label, review_length_list)
-                print("第{}个epoch的第{}个batch的交叉熵为: {}".format(epoch, index, loss))
+                print("第{}个epoch的第{}个batch的交叉熵为: {},用时为{}".format(epoch, index, loss, time.time() - t1))
 
             model.save(sess, saver, os.path.join(log_path, "model.ckpt"), epoch)
 
