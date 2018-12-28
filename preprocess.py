@@ -1,6 +1,7 @@
 import argparse
 import os
 import pickle as pl
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -9,12 +10,15 @@ from nltk import RegexpTokenizer
 
 from config import train_review_path, embedding_path, embedding_pickle_path, train_path, test_path
 
+warnings.filterwarnings("ignore")
+
 
 def build_emb_matrix_and_vocab(embedding_model, vocabulary_size=20000, embedding_size=100):
     # 0 th element is the default vector for unknowns.
+    vocabulary_size = min(vocabulary_size, len(embedding_model.wv.index2word))
     emb_matrix = np.zeros((vocabulary_size + 2, embedding_size))
-    word2index = {}
-    index2word = {}
+    word2index = dict()
+    index2word = dict()
     for k in range(1, vocabulary_size + 1):
         word = embedding_model.wv.index2word[k - 1]
         emb_matrix[k] = embedding_model[word]
