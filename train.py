@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     config_proto = tf.ConfigProto(
         allow_soft_placement=True,
-        log_device_placement=False,
+        log_device_placement=True,
         gpu_options=tf.GPUOptions(allow_growth=True)
     )
 
