@@ -61,3 +61,5 @@ if __name__ == "__main__":
                 enumerate(gen_batch_train_data(test_data, word2index, max_sentence_length, max_review_length)):
             accuracy = model.evaluate(sess, batch_data, batch_label, review_length_list)
             print("第{}个batch测试集的accuracy为{}".format(index, accuracy))
+
+
