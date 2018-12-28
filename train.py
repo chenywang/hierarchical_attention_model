@@ -13,8 +13,6 @@ from attention_model.hierarchical_attention_model import HierarchicalModel
 from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
     parser.add_argument('-b', '--batch_size', type=int, default=512,
@@ -77,7 +75,8 @@ if __name__ == "__main__":
 
             print("正在评估...")
             for index, (batch_data, batch_label, review_length_list) in \
-                    enumerate(gen_batch_train_data(test_data[:10000], word2index, max_sentence_length, max_review_length,
-                                                   batch_size=train_batch_size)):
+                    enumerate(
+                        gen_batch_train_data(test_data[:10000], word2index, max_sentence_length, max_review_length,
+                                             batch_size=train_batch_size)):
                 accuracy = model.evaluate(sess, batch_data, batch_label, review_length_list)
                 print("第{}个batch测试集的accuracy为{}".format(index, accuracy))
