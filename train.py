@@ -13,7 +13,6 @@ from attention_model.hierarchical_attention_model import HierarchicalModel
 from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
