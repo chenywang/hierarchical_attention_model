@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
     parser.add_argument('-b', '--batch_size', type=int, default=512,
                         help='training batch size')
-    parser.add_argument('-r', '--resume', type=bool, default=False,
+    parser.add_argument('-r', '--retrain', type=bool, default=True,
                         help='pick up the latest check point and resume')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='epochs for training')
@@ -26,7 +26,6 @@ if __name__ == "__main__":
     # 设置基本参数
     args = parser.parse_args()
     train_batch_size = args.batch_size
-    resume = args.resume
     epochs = args.epochs
     max_sentence_length = 70
     max_review_length = 15
@@ -57,11 +56,9 @@ if __name__ == "__main__":
         #         insert this snippet to restore a model:
         resume_from_epoch = -1
         print("正在训练...")
-        if resume:
+        if not args.retrain:
             latest_cpt_file = tf.train.latest_checkpoint(log_path)
             print("the code pick up from lateset checkpoint file: {}".format(latest_cpt_file))
-            resume_from_epoch = int(str(latest_cpt_file).split('-')[1])
-            print("it resumes from previous epoch of {}".format(resume_from_epoch))
             model.restore(sess, saver, latest_cpt_file)
         for epoch in range(resume_from_epoch + 1, resume_from_epoch + epochs + 1):
             for index, (batch_data, batch_label, review_length_list) in \
