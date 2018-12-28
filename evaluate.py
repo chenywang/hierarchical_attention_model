@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 # @Author : Michael-Wang
 import argparse
-import os
 import pickle as pl
 
+import os
 import pandas as pd
 import tensorflow as tf
 
@@ -11,7 +11,7 @@ from attention_model.hierarchical_attention_model import HierarchicalModel
 from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
