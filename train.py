@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 # @Author : Michael-Wang
 import argparse
+import ast
 import os
 import pickle as pl
 import time
@@ -18,15 +19,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parameters for building the model.')
     parser.add_argument('-b', '--batch_size', type=int, default=512,
                         help='training batch size')
-    parser.add_argument('-r', '--retrain', type=bool, default=True,
+    parser.add_argument('-r', '--retrain', type=ast.literal_eval, default=True,
                         help='pick up the latest check point and resume')
-    parser.add_argument('-e', '--epochs', type=int, default=10,
+    parser.add_argument('-e', '--epoch', type=int, default=10,
                         help='epochs for training')
 
     # 设置基本参数
     args = parser.parse_args()
     train_batch_size = args.batch_size
-    epochs = args.epochs
+    epochs = args.epoch
     max_sentence_length = 70
     max_review_length = 15
 

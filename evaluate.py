@@ -44,7 +44,13 @@ if __name__ == "__main__":
 
     saver = tf.train.Saver()
 
-    with tf.Session() as sess:
+    config_proto = tf.ConfigProto(
+        allow_soft_placement=True,
+        log_device_placement=False,
+        gpu_options=tf.GPUOptions(allow_growth=True)
+    )
+
+    with tf.Session(config=config_proto) as sess:
         train_writer = tf.summary.FileWriter(log_path, sess.graph)
         print("载入模型中...")
         latest_cpt_file = tf.train.latest_checkpoint(log_path)
