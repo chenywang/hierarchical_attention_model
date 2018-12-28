@@ -7,7 +7,7 @@ import pandas as pd
 from gensim.models import Word2Vec
 from nltk import RegexpTokenizer
 
-from config import config
+from config import train_review_path, embedding_path, embedding_pickle_path, train_path, test_path
 
 
 def build_emb_matrix_and_vocab(embedding_model, vocabulary_size=20000, embedding_size=100):
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                         help='fix the maximum review length')
 
     # 获得数据
-    data = pd.read_csv(config.train_review_path, sep='\t')
+    data = pd.read_csv(train_review_path, sep='\t')
 
     # token化数据
     tokenizer = RegexpTokenizer(r'\w+')
@@ -71,12 +71,12 @@ if __name__ == "__main__":
 
     # 训练embedding层
     embedding_size = 100
-    if os.path.isfile(config.embedding_path):
-        embedding_model = Word2Vec.load(config.embedding_path)
+    if os.path.isfile(embedding_path):
+        embedding_model = Word2Vec.load(embedding_path)
     else:
         print("保存gensim的word2vec模型")
         embedding_model = Word2Vec(train, size=embedding_size, window=5, min_count=5)
-        embedding_model.save(config.embedding_path)
+        embedding_model.save(embedding_path)
 
     # 测试直观效果
     word1 = "好"
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     print("保存embedding层...")
     emb_matrix, word2index, index2word = build_emb_matrix_and_vocab(embedding_model)
-    pl.dump([emb_matrix, word2index, index2word], open(config.embedding_pickle_path, "wb"))
+    pl.dump([emb_matrix, word2index, index2word], open(embedding_pickle_path, "wb"))
 
     # 获得数据
     data['label'] = data.apply(positive_and_negative, axis=1)
@@ -104,5 +104,5 @@ if __name__ == "__main__":
     train_data, test_data = data[:split_index], data[split_index:]
 
     print('保存训练样本与测试样本')
-    train_data.to_csv(config.train_path, sep='\t', header=True, index=False)
-    test_data.to_csv(config.test_path, sep='\t', header=True, index=False)
+    train_data.to_csv(train_path, sep='\t', header=True, index=False)
+    test_data.to_csv(test_path, sep='\t', header=True, index=False)

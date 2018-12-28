@@ -4,7 +4,7 @@
 
 from pyltp import Segmentor
 
-from config import config
+from config import seg_model_path, user_dict_path
 from util import get_sentences_from_paragraph
 
 
@@ -21,10 +21,10 @@ class MySegmentor:
     def load_model(self):
         """载入ltp分词模型"""
         # 修改模型所在位置
-        self.seg_model_path = config.seg_model_path
+        self.seg_model_path = seg_model_path
 
         # 修改字典地址
-        self.user_dict_path = config.user_dict_path
+        self.user_dict_path = user_dict_path
 
         # 载入模型
         self.segmentor.load_with_lexicon(

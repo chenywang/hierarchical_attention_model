@@ -7,7 +7,7 @@ import pickle as pl
 import pandas as pd
 import tensorflow as tf
 
-from config import config
+from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
 from attention_model.hierarchical_attention_model import HierarchicalModel
 
@@ -31,12 +31,12 @@ if __name__ == "__main__":
     max_review_length = 15
 
     print("载入嵌入层...")
-    (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
+    (emb_matrix, word2index, index2word) = pl.load(open(embedding_pickle_path, "rb"))
 
     print("载入训练与测试数据...")
     train_size = test_size = 500000
-    train_data = pd.read_csv(config.train_path, sep='\t')[:train_size]
-    test_data = pd.read_csv(config.test_path, sep='\t')[:test_size]
+    train_data = pd.read_csv(train_path, sep='\t')[:train_size]
+    test_data = pd.read_csv(test_path, sep='\t')[:test_size]
 
     print("生成模型中...")
     model = HierarchicalModel(max_sentence_length, max_review_length, emb_matrix)
@@ -44,14 +44,14 @@ if __name__ == "__main__":
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        train_writer = tf.summary.FileWriter(config.log_path, sess.graph)
+        train_writer = tf.summary.FileWriter(log_path, sess.graph)
         sess.run(tf.global_variables_initializer())
         sess.run(tf.local_variables_initializer())
         #         insert this snippet to restore a model:
         resume_from_epoch = -1
         print("正在训练...")
         if resume:
-            latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
+            latest_cpt_file = tf.train.latest_checkpoint(log_path)
             print("the code pick up from lateset checkpoint file: {}".format(latest_cpt_file))
             resume_from_epoch = int(str(latest_cpt_file).split('-')[1])
             print("it resumes from previous epoch of {}".format(resume_from_epoch))
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 loss = model.train(sess, batch_data, batch_label, review_length_list)
                 print("第{}个epoch的第{}个batch的交叉熵为: {}".format(epoch, index, loss))
 
-            model.save(sess, saver, os.path.join(config.log_path, "model.ckpt"), epoch)
+            model.save(sess, saver, os.path.join(log_path, "model.ckpt"), epoch)
 
         print("正在评估...")
         for index, (batch_data, batch_label, review_length_list) in \

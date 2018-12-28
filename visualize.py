@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from algorithm.implement.components import visualize
 from attention_model.hierarchical_attention_model import HierarchicalModel
-from config import config
+from config import test_path, embedding_pickle_path, log_path
 from util.data_utils import gen_batch_train_data
 
 if __name__ == '__main__':
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     max_review_length = args.max_rev_length
 
     print("载入嵌入层...")
-    (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
+    (emb_matrix, word2index, index2word) = pl.load(open(embedding_pickle_path, "rb"))
 
     print("生成模型中...")
     model = HierarchicalModel(max_sentence_length, max_review_length, emb_matrix)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     print("载入需要可视化的数据...")
     test_size = 100
-    test_data = pd.read_csv(config.test_path, sep='\t')
+    test_data = pd.read_csv(test_path, sep='\t')
     test_data['review_length'] = test_data['context'].apply(lambda review: len(review.split('.')))
     test_data = test_data[test_data['review_length'] > 4][:test_size]
     review_list = list(test_data['context'])
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         print("载入模型中...")
-        latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
+        latest_cpt_file = tf.train.latest_checkpoint(log_path)
         model.restore(sess, saver, latest_cpt_file)
         review_probability_list, alphas_words_matrix, alphas_sentences_matrix = model.predict(sess, batch_data,
                                                                                               review_length_list)

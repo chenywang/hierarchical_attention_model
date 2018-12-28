@@ -1,9 +1,4 @@
-import os
-
-
 try:
-    from config.configs import Config
+    from config.configs import *
 except ImportError:
-    from config.default import Config
-
-config = Config()
+    from config.default import *

@@ -4,7 +4,7 @@ import os
 
 import tensorflow as tf
 
-from config import config
+from config import visualization_path
 from util.tool import redistribute
 
 
@@ -75,7 +75,7 @@ def visualize(review, alphas_words_list, alphas_sentences_list, index, y, probab
 
     # 写入文件
     if write_h5:
-        h5_path = os.path.join(config.visualization_path, "visualize_{}.html".format(index))
+        h5_path = os.path.join(visualization_path, "visualize_{}.html".format(index))
         with open(h5_path, "w") as h5_file:
             h5_file.write(h5_string)
     return h5_string

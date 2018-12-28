@@ -8,7 +8,7 @@ import pandas as pd
 import tensorflow as tf
 
 from attention_model.hierarchical_attention_model import HierarchicalModel
-from config import config
+from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -30,15 +30,14 @@ if __name__ == "__main__":
     resume = args.resume
     max_sentence_length = args.max_sentence_length
     max_review_length = args.max_rev_length
-    log_dir = config.log_path
 
     print("载入嵌入层...")
-    (emb_matrix, word2index, index2word) = pl.load(open(config.embedding_pickle_path, "rb"))
+    (emb_matrix, word2index, index2word) = pl.load(open(embedding_pickle_path, "rb"))
 
     print("载入训练与测试数据...")
     train_size = test_size = 10000
-    train_data = pd.read_csv(config.train_path, sep='\t')[:train_size]
-    test_data = pd.read_csv(config.test_path, sep='\t')[:test_size]
+    train_data = pd.read_csv(train_path, sep='\t')[:train_size]
+    test_data = pd.read_csv(test_path, sep='\t')[:test_size]
 
     print("生成模型中...")
     model = HierarchicalModel(max_sentence_length, max_review_length, emb_matrix)
@@ -46,9 +45,9 @@ if __name__ == "__main__":
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        train_writer = tf.summary.FileWriter(log_dir, sess.graph)
+        train_writer = tf.summary.FileWriter(log_path, sess.graph)
         print("载入模型中...")
-        latest_cpt_file = tf.train.latest_checkpoint(config.log_path)
+        latest_cpt_file = tf.train.latest_checkpoint(log_path)
         model.restore(sess, saver, latest_cpt_file)
 
         print("正在评估...")
