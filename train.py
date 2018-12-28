@@ -3,14 +3,14 @@
 import argparse
 import os
 import pickle as pl
+import time
 
 import pandas as pd
 import tensorflow as tf
-import time
 
+from attention_model.hierarchical_attention_model import HierarchicalModel
 from config import log_path, train_path, test_path, embedding_pickle_path
 from util.data_utils import gen_batch_train_data
-from attention_model.hierarchical_attention_model import HierarchicalModel
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -62,15 +62,21 @@ if __name__ == "__main__":
             model.restore(sess, saver, latest_cpt_file)
         for epoch in range(resume_from_epoch + 1, resume_from_epoch + epochs + 1):
             for index, (batch_data, batch_label, review_length_list) in \
-                    enumerate(gen_batch_train_data(train_data, word2index, max_sentence_length, max_review_length)):
+                    enumerate(gen_batch_train_data(train_data, word2index, max_sentence_length, max_review_length,
+                                                   batch_size=train_batch_size)):
                 t1 = time.time()
                 loss = model.train(sess, batch_data, batch_label, review_length_list)
-                print("第{}个epoch的第{}个batch的交叉熵为: {},用时为{}".format(epoch, index, loss, time.time() - t1))
+                print("第{}个epoch的第{}个batch的交叉熵为: {},用时为{},batch size为{}".format(epoch,
+                                                                                index,
+                                                                                loss,
+                                                                                time.time() - t1,
+                                                                                train_batch_size))
 
             model.save(sess, saver, os.path.join(log_path, "model.ckpt"), epoch)
 
-        print("正在评估...")
-        for index, (batch_data, batch_label, review_length_list) in \
-                enumerate(gen_batch_train_data(test_data, word2index, max_sentence_length, max_review_length)):
-            accuracy = model.evaluate(sess, batch_data, batch_label, review_length_list)
-            print("第{}个batch测试集的accuracy为{}".format(index, accuracy))
+            print("正在评估...")
+            for index, (batch_data, batch_label, review_length_list) in \
+                    enumerate(gen_batch_train_data(test_data[:10000], word2index, max_sentence_length, max_review_length,
+                                                   batch_size=train_batch_size)):
+                accuracy = model.evaluate(sess, batch_data, batch_label, review_length_list)
+                print("第{}个batch测试集的accuracy为{}".format(index, accuracy))
